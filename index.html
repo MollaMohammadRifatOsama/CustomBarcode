@@ -6,83 +6,14 @@
 <title>প্রিমিয়াম বারকোড জেনারেটর</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-    body {
-        font-family: 'Roboto', sans-serif;
-        text-align: center;
-        background: linear-gradient(135deg, #f0f4ff, #e0e7ff);
-        padding: 40px 20px;
-    }
-
-    h2 {
-        color: #1a202c;
-        font-size: 2rem;
-        margin-bottom: 30px;
-    }
-
-    #barcodeContainer {
-        margin: 20px auto;
-        padding: 30px;
-        display: inline-block;
-        background: #fff;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        transition: transform 0.3s ease;
-    }
-
-    #barcodeContainer:hover {
-        transform: scale(1.02);
-    }
-
-    input, select {
-        margin: 10px 5px;
-        padding: 12px 18px;
-        font-size: 16px;
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        outline: none;
-        transition: all 0.2s ease;
-    }
-
-    input:focus, select:focus {
-        border-color: #4f46e5;
-        box-shadow: 0 0 5px rgba(79, 70, 229, 0.5);
-    }
-
-    #downloadContainer {
-        margin-top: 20px;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        flex-wrap: wrap;
-    }
-
-    button {
-        padding: 12px 20px;
-        font-size: 16px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-        background: linear-gradient(90deg, #4f46e5, #3b82f6);
-        color: #fff;
-        transition: all 0.3s ease;
-    }
-
-    button:hover {
-        background: linear-gradient(90deg, #3b82f6, #4f46e5);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    button:active {
-        transform: translateY(1px);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-
-    label {
-        font-weight: 500;
-        color: #1f2937;
-    }
+    body { font-family: 'Roboto', sans-serif; text-align: center; background: linear-gradient(135deg, #f0f4ff, #e0e7ff); padding: 40px 20px; }
+    h2 { color: #1a202c; font-size: 2rem; margin-bottom: 30px; }
+    #barcodeContainer { margin: 20px auto; padding: 30px; display: inline-block; background: #fff; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    input, select { margin: 10px 5px; padding: 12px 18px; font-size: 16px; border-radius: 10px; border: 1px solid #cbd5e1; outline: none; }
+    #downloadContainer { margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+    button { padding: 12px 20px; font-size: 16px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; background: linear-gradient(90deg, #4f46e5, #3b82f6); color: #fff; transition: all 0.3s ease; }
+    button:hover { background: linear-gradient(90deg, #3b82f6, #4f46e5); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    label { font-weight: 500; color: #1f2937; }
 </style>
 </head>
 <body>
@@ -90,13 +21,10 @@
 
 <label>বারকোড ডেটা:</label>
 <input type="text" id="barcodeData" placeholder="বারকোড লিখুন"><br>
-
 <label>বারকোড কালার:</label>
 <input type="color" id="barcodeColor" value="#000000"><br>
-
 <label>ব্যাকগ্রাউন্ড কালার:</label>
 <input type="color" id="bgColor" value="#ffffff"><br>
-
 <label>লেখা দেখাবো কি?</label>
 <select id="displayValue">
     <option value="true">হ্যাঁ</option>
@@ -136,7 +64,7 @@ function updateBarcode() {
 // Initial render
 updateBarcode();
 
-// Update barcode on input change
+// Real-time update
 barcodeData.addEventListener('input', updateBarcode);
 barcodeColor.addEventListener('input', updateBarcode);
 bgColor.addEventListener('input', updateBarcode);
@@ -148,21 +76,26 @@ function downloadBarcode(type) {
     const ctx = canvas.getContext('2d');
 
     const img = new Image();
-    const data = 'data:image/svg+xml;base64,' + btoa(xml);
+    const data = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
 
     img.onload = function() {
         canvas.width = img.width;
         canvas.height = img.height;
+
         if(type === 'transparent'){
+            // সম্পূর্ণ ট্রান্সপারেন্ট
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         } else {
+            // ব্যাকগ্রাউন্ড ভর্তি
             ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
+
         ctx.drawImage(img, 0, 0);
 
         let link = document.createElement('a');
-        link.href = (type === 'jpg') ? canvas.toDataURL('image/jpeg') : canvas.toDataURL('image/png');
+        if(type === 'jpg') link.href = canvas.toDataURL('image/jpeg');
+        else link.href = canvas.toDataURL('image/png');
         link.download = `barcode.${type==='jpg'?'jpg':'png'}`;
         link.click();
     };
