@@ -1,81 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transparent Barcode Generator</title>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<title>প্রিমিয়াম বারকোড জেনারেটর</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
-    background: #f5f5f5;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  input, button {
-    margin: 5px;
-    padding: 8px 12px;
-    font-size: 16px;
-  }
+    body {
+        font-family: 'Roboto', sans-serif;
+        text-align: center;
+        background: linear-gradient(135deg, #f0f4ff, #e0e7ff);
+        padding: 40px 20px;
+    }
+
+    h2 {
+        color: #1a202c;
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    #barcodeContainer {
+        margin: 20px auto;
+        padding: 30px;
+        display: inline-block;
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
+
+    #barcodeContainer:hover {
+        transform: scale(1.02);
+    }
+
+    input, select {
+        margin: 10px 5px;
+        padding: 12px 18px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 5px rgba(79, 70, 229, 0.5);
+    }
+
+    #downloadContainer {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        background: linear-gradient(90deg, #4f46e5, #3b82f6);
+        color: #fff;
+        transition: all 0.3s ease;
+    }
+
+    button:hover {
+        background: linear-gradient(90deg, #3b82f6, #4f46e5);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    label {
+        font-weight: 500;
+        color: #1f2937;
+    }
 </style>
 </head>
 <body>
+<h2>প্রিমিয়াম বারকোড জেনারেটর</h2>
 
-<h2>Transparent Barcode Generator</h2>
+<label>বারকোড ডেটা:</label>
+<input type="text" id="barcodeData" placeholder="বারকোড লিখুন"><br>
 
-<input type="text" id="barcodeValue" placeholder="Enter Barcode Value">
-<input type="color" id="barcodeColor" value="#000000">
-<button onclick="generateBarcode()">Generate</button>
-<button onclick="downloadBarcode()">Download Transparent PNG</button>
+<label>বারকোড কালার:</label>
+<input type="color" id="barcodeColor" value="#000000"><br>
 
-<svg id="barcode"></svg>
+<label>ব্যাকগ্রাউন্ড কালার:</label>
+<input type="color" id="bgColor" value="#ffffff"><br>
 
+<label>লেখা দেখাবো কি?</label>
+<select id="displayValue">
+    <option value="true">হ্যাঁ</option>
+    <option value="false">না</option>
+</select><br>
+
+<div id="barcodeContainer">
+    <svg id="barcode"></svg>
+</div>
+
+<div id="downloadContainer">
+    <button onclick="downloadBarcode('png')">PNG ডাউনলোড</button>
+    <button onclick="downloadBarcode('jpg')">JPG ডাউনলোড</button>
+    <button onclick="downloadBarcode('transparent')">Transparent PNG</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script>
-function generateBarcode() {
-  const value = document.getElementById("barcodeValue").value.trim();
-  if (!value) return alert("Please enter a barcode value!");
-  
-  const color = document.getElementById("barcodeColor").value;
+const svg = document.getElementById('barcode');
+const barcodeData = document.getElementById('barcodeData');
+const barcodeColor = document.getElementById('barcodeColor');
+const bgColor = document.getElementById('bgColor');
+const displayValue = document.getElementById('displayValue');
 
-  JsBarcode("#barcode", value, {
-    format: "CODE128",
-    lineColor: color,
-    width: 2,
-    height: 100,
-    displayValue: true, // Show number below barcode
-    margin: 0 // Remove extra margin
-  });
+function updateBarcode() {
+    JsBarcode(svg, barcodeData.value || "123456789012", {
+        format: "CODE128",
+        lineColor: barcodeColor.value,
+        background: bgColor.value,
+        displayValue: displayValue.value === 'true',
+        width: 2,
+        height: 120,
+        fontSize: 18
+    });
 }
 
-function downloadBarcode() {
-  const svg = document.getElementById("barcode");
-  if (!svg.hasChildNodes()) return alert("Generate a barcode first!");
+// Initial render
+updateBarcode();
 
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svg);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  const img = new Image();
+// Update barcode on input change
+barcodeData.addEventListener('input', updateBarcode);
+barcodeColor.addEventListener('input', updateBarcode);
+bgColor.addEventListener('input', updateBarcode);
+displayValue.addEventListener('change', updateBarcode);
 
-  img.onload = function() {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Fully transparent
-    ctx.drawImage(img, 0, 0);
+function downloadBarcode(type) {
+    const xml = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "barcode_transparent.png";
-    link.click();
-  };
+    const img = new Image();
+    const data = 'data:image/svg+xml;base64,' + btoa(xml);
 
-  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        if(type === 'transparent'){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0);
+
+        let link = document.createElement('a');
+        link.href = (type === 'jpg') ? canvas.toDataURL('image/jpeg') : canvas.toDataURL('image/png');
+        link.download = `barcode.${type==='jpg'?'jpg':'png'}`;
+        link.click();
+    };
+    img.src = data;
 }
 </script>
-
 </body>
 </html>
