@@ -1,141 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CustomBarcode</title>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    h1 {
-      color: #333;
-    }
-    input[type="text"], input[type="color"] {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
-    label {
-      margin-right: 5px;
-    }
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #0aa;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #088;
-    }
-    #barcode {
-      margin-top: 20px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      background: white;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transparent Barcode Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    background: #f5f5f5;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  input, button {
+    margin: 5px;
+    padding: 8px 12px;
+    font-size: 16px;
+  }
+</style>
 </head>
 <body>
-  <h1>CustomBarcode Generator</h1>
 
-  <div>
-    <input type="text" id="barcodeValue" placeholder="Enter Barcode Value">
-    <br>
-    <label>Barcode Color:</label>
-    <input type="color" id="barcodeColor" value="#0aa">
-    <br>
-    <label>Show Text Below Barcode?</label>
-    <input type="checkbox" id="displayText" checked>
-    <br>
-    <button onclick="generateBarcode()">Generate Barcode</button>
-  </div>
+<h2>Transparent Barcode Generator</h2>
 
-  <svg id="barcode"></svg>
+<input type="text" id="barcodeValue" placeholder="Enter Barcode Value">
+<input type="color" id="barcodeColor" value="#000000">
+<button onclick="generateBarcode()">Generate</button>
+<button onclick="downloadBarcode()">Download Transparent PNG</button>
 
-  <div>
-    <button onclick="downloadBarcode('png')">Download PNG</button>
-    <button onclick="downloadBarcode('jpg')">Download JPG</button>
-    <button onclick="downloadBarcode('transparent')">Download Transparent PNG</button>
-  </div>
+<svg id="barcode"></svg>
 
-  <script>
-    function generateBarcode() {
-      const value = document.getElementById("barcodeValue").value;
-      if (!value.trim()) {
-        alert("Please enter a barcode value!");
-        return;
-      }
+<script>
+function generateBarcode() {
+  const value = document.getElementById("barcodeValue").value.trim();
+  if (!value) return alert("Please enter a barcode value!");
+  
+  const color = document.getElementById("barcodeColor").value;
 
-      const color = document.getElementById("barcodeColor").value;
-      const display = document.getElementById("displayText").checked;
+  JsBarcode("#barcode", value, {
+    format: "CODE128",
+    lineColor: color,
+    width: 2,
+    height: 100,
+    displayValue: true, // Show number below barcode
+    margin: 0 // Remove extra margin
+  });
+}
 
-      JsBarcode("#barcode", value, {
-        format: "CODE128",
-        lineColor: color,
-        width: 2,
-        height: 100,
-        displayValue: display
-      });
-    }
+function downloadBarcode() {
+  const svg = document.getElementById("barcode");
+  if (!svg.hasChildNodes()) return alert("Generate a barcode first!");
 
-    function downloadBarcode(type) {
-      const svg = document.getElementById("barcode");
-      if (!svg.hasChildNodes()) {
-        alert("Please generate a barcode first!");
-        return;
-      }
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(svg);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
 
-      const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(svg);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
+  img.onload = function() {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Fully transparent
+    ctx.drawImage(img, 0, 0);
 
-      img.onload = function() {
-        canvas.width = img.width;
-        canvas.height = img.height;
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "barcode_transparent.png";
+    link.click();
+  };
 
-        // Clear canvas for transparent or fill white for PNG/JPG
-        if (type === 'transparent') {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        } else {
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+}
+</script>
 
-        ctx.drawImage(img, 0, 0);
-
-        let mimeType = "image/png";
-        let filename = "barcode.png";
-
-        if (type === 'jpg') {
-          mimeType = "image/jpeg";
-          filename = "barcode.jpg";
-        } else if (type === 'transparent') {
-          mimeType = "image/png";
-          filename = "barcode_transparent.png";
-        }
-
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL(mimeType);
-        link.download = filename;
-        link.click();
-      };
-
-      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-    }
-  </script>
 </body>
 </html>
