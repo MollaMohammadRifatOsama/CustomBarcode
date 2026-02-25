@@ -21,10 +21,37 @@ h2 { color: #1a202c; font-size: 2rem; margin-bottom: 30px; }
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-input, select { margin: 10px 5px; padding: 12px 18px; font-size: 16px; border-radius: 10px; border: 1px solid #cbd5e1; outline: none; }
-#downloadContainer { margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-button { padding: 12px 20px; font-size: 16px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; background: linear-gradient(90deg, #4f46e5, #3b82f6); color: #fff; transition: all 0.3s ease; }
-button:hover { background: linear-gradient(90deg, #3b82f6, #4f46e5); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+input, select {
+    margin: 10px 5px;
+    padding: 12px 18px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+}
+#downloadContainer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    background: linear-gradient(90deg, #4f46e5, #3b82f6);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+button:hover {
+    background: linear-gradient(90deg, #3b82f6, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
 label { font-weight: 500; color: #1f2937; }
 </style>
 </head>
@@ -35,6 +62,8 @@ label { font-weight: 500; color: #1f2937; }
 <input type="text" id="barcodeData" placeholder="বারকোড লিখুন"><br>
 <label>বারকোড কালার:</label>
 <input type="color" id="barcodeColor" value="#000000"><br>
+<label>ব্যাকগ্রাউন্ড কালার:</label>
+<input type="color" id="bgColor" value="#ffffff"><br>
 <label>লেখা দেখাবো কি?</label>
 <select id="displayValue">
     <option value="true">হ্যাঁ</option>
@@ -46,7 +75,9 @@ label { font-weight: 500; color: #1f2937; }
 </div>
 
 <div id="downloadContainer">
-    <button onclick="downloadBarcode('png')">PNG ডাউনলোড (Transparent)</button>
+    <button onclick="downloadBarcode('png')">PNG ডাউনলোড</button>
+    <button onclick="downloadBarcode('jpg')">JPG ডাউনলোড</button>
+    <button onclick="downloadBarcode('transparent')">Transparent PNG</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -54,13 +85,14 @@ label { font-weight: 500; color: #1f2937; }
 const svg = document.getElementById('barcode');
 const barcodeData = document.getElementById('barcodeData');
 const barcodeColor = document.getElementById('barcodeColor');
+const bgColor = document.getElementById('bgColor');
 const displayValue = document.getElementById('displayValue');
 
 function updateBarcode() {
     JsBarcode(svg, barcodeData.value || "123456789012", {
         format: "CODE128",
         lineColor: barcodeColor.value,
-        background: "transparent", // background সম্পূর্ণ ট্রান্সপারেন্ট
+        background: bgColor.value,
         displayValue: displayValue.value === 'true',
         width: 2,
         height: 120,
@@ -74,9 +106,10 @@ updateBarcode();
 // Real-time update
 barcodeData.addEventListener('input', updateBarcode);
 barcodeColor.addEventListener('input', updateBarcode);
+bgColor.addEventListener('input', updateBarcode);
 displayValue.addEventListener('change', updateBarcode);
 
-function downloadBarcode() {
+function downloadBarcode(type) {
     const xml = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -87,13 +120,21 @@ function downloadBarcode() {
     img.onload = function() {
         canvas.width = img.width;
         canvas.height = img.height;
-        // canvas সম্পূর্ণ clear, কোনো background নেই
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if(type === 'transparent'){
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // background-free
+        } else {
+            ctx.fillStyle = bgColor.value; // selected background color
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
         ctx.drawImage(img, 0, 0);
 
-        let link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png'); // PNG transparency
-        link.download = `barcode_transparent.png`;
+        const link = document.createElement('a');
+        if(type === 'jpg') link.href = canvas.toDataURL('image/jpeg');
+        else link.href = canvas.toDataURL('image/png');
+
+        link.download = `barcode.${type==='jpg'?'jpg':'png'}`;
         link.click();
     };
     img.src = data;
