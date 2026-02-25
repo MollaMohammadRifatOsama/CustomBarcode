@@ -113,7 +113,6 @@ function downloadBarcode(type) {
     const xml = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     const img = new Image();
     const data = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
 
@@ -121,10 +120,12 @@ function downloadBarcode(type) {
         canvas.width = img.width;
         canvas.height = img.height;
 
-        if(type === 'transparent'){
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // background-free
+        if(type === 'transparent') {
+            // Clear canvas, no background
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         } else {
-            ctx.fillStyle = bgColor.value; // selected background color
+            // Fill canvas with user-selected background color
+            ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
@@ -133,8 +134,7 @@ function downloadBarcode(type) {
         const link = document.createElement('a');
         if(type === 'jpg') link.href = canvas.toDataURL('image/jpeg');
         else link.href = canvas.toDataURL('image/png');
-
-        link.download = `barcode.${type==='jpg'?'jpg':'png'}`;
+        link.download = type === 'jpg' ? 'barcode.jpg' : type==='transparent' ? 'barcode_transparent.png' : 'barcode.png';
         link.click();
     };
     img.src = data;
