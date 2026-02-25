@@ -1,1 +1,139 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced বারকোড জেনারেটর</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    input[type="text"], input[type="color"] {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    label {
+      margin-right: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #0aa;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #088;
+    }
+    #barcode {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Advanced বারকোড জেনারেটর</h1>
 
+  <div>
+    <input type="text" id="barcodeValue" placeholder="বারকোডের মান লিখুন">
+    <br>
+    <label>বারকোড কালার:</label>
+    <input type="color" id="barcodeColor" value="#0aa">
+    <br>
+    <label>নিচে লেখা দেখাবেন?</label>
+    <input type="checkbox" id="displayText" checked>
+    <br>
+    <button onclick="generateBarcode()">জেনারেট করুন</button>
+  </div>
+
+  <svg id="barcode"></svg>
+
+  <div>
+    <button onclick="downloadBarcode('png')">Download PNG</button>
+    <button onclick="downloadBarcode('jpg')">Download JPG</button>
+    <button onclick="downloadBarcode('transparent')">Download Transparent PNG</button>
+  </div>
+
+  <script>
+    function generateBarcode() {
+      const value = document.getElementById("barcodeValue").value;
+      if (!value.trim()) {
+        alert("বারকোডের মান লিখুন!");
+        return;
+      }
+
+      const color = document.getElementById("barcodeColor").value;
+      const display = document.getElementById("displayText").checked;
+
+      JsBarcode("#barcode", value, {
+        format: "CODE128",
+        lineColor: color,
+        width: 2,
+        height: 100,
+        displayValue: display
+      });
+    }
+
+    function downloadBarcode(type) {
+      const svg = document.getElementById("barcode");
+      if (!svg.hasChildNodes()) {
+        alert("প্রথমে বারকোড জেনারেট করুন!");
+        return;
+      }
+
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svg);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        if (type === 'transparent') {
+          ctx.clearRect(0, 0, canvas.width, canvas.height); // Transparent background
+        } else {
+          ctx.fillStyle = "#fff"; // White background
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.drawImage(img, 0, 0);
+        
+        let mimeType = "image/png";
+        let filename = "barcode.png";
+        if (type === 'jpg') {
+          mimeType = "image/jpeg";
+          filename = "barcode.jpg";
+        } else if (type === 'transparent') {
+          mimeType = "image/png";
+          filename = "barcode_transparent.png";
+        }
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL(mimeType);
+        link.download = filename;
+        link.click();
+      };
+
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+    }
+  </script>
+</body>
+  </html>
