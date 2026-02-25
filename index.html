@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advanced বারকোড জেনারেটর</title>
+  <title>CustomBarcode</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <style>
     body {
@@ -48,18 +48,18 @@
   </style>
 </head>
 <body>
-  <h1>Advanced বারকোড জেনারেটর</h1>
+  <h1>CustomBarcode Generator</h1>
 
   <div>
-    <input type="text" id="barcodeValue" placeholder="বারকোডের মান লিখুন">
+    <input type="text" id="barcodeValue" placeholder="Enter Barcode Value">
     <br>
-    <label>বারকোড কালার:</label>
+    <label>Barcode Color:</label>
     <input type="color" id="barcodeColor" value="#0aa">
     <br>
-    <label>নিচে লেখা দেখাবেন?</label>
+    <label>Show Text Below Barcode?</label>
     <input type="checkbox" id="displayText" checked>
     <br>
-    <button onclick="generateBarcode()">জেনারেট করুন</button>
+    <button onclick="generateBarcode()">Generate Barcode</button>
   </div>
 
   <svg id="barcode"></svg>
@@ -74,7 +74,7 @@
     function generateBarcode() {
       const value = document.getElementById("barcodeValue").value;
       if (!value.trim()) {
-        alert("বারকোডের মান লিখুন!");
+        alert("Please enter a barcode value!");
         return;
       }
 
@@ -93,7 +93,7 @@
     function downloadBarcode(type) {
       const svg = document.getElementById("barcode");
       if (!svg.hasChildNodes()) {
-        alert("প্রথমে বারকোড জেনারেট করুন!");
+        alert("Please generate a barcode first!");
         return;
       }
 
@@ -107,17 +107,19 @@
         canvas.width = img.width;
         canvas.height = img.height;
 
+        // Clear canvas for transparent or fill white for PNG/JPG
         if (type === 'transparent') {
-          ctx.clearRect(0, 0, canvas.width, canvas.height); // Transparent background
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
         } else {
-          ctx.fillStyle = "#fff"; // White background
+          ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         ctx.drawImage(img, 0, 0);
-        
+
         let mimeType = "image/png";
         let filename = "barcode.png";
+
         if (type === 'jpg') {
           mimeType = "image/jpeg";
           filename = "barcode.jpg";
@@ -136,4 +138,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
